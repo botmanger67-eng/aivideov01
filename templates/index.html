@@ -1,0 +1,462 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidGen AI – Short-Form Video Creator</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1e1e2d;
+            color: #e4e6eb;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #1e1e2d;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-right: 1px solid #2b2b3a;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            z-index: 100;
+        }
+
+        .sidebar .brand {
+            padding: 0 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-section {
+            padding: 10px 20px;
+        }
+
+        .sidebar .nav-section h5 {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            color: #6c7293;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-btn {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: #a2a3b7;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: background .2s, color .2s;
+        }
+
+        .sidebar .nav-btn:hover,
+        .sidebar .nav-btn.active {
+            background: #2b2b3a;
+            color: #fff;
+        }
+
+        .new-video-btn {
+            background: #009ef7;
+            color: white;
+            border-radius: 8px;
+            padding: 12px 16px;
+            text-align: center;
+            margin: 8px 20px 16px;
+            font-weight: 600;
+            transition: background .2s;
+            text-decoration: none;
+            display: block;
+            font-size: .95rem;
+        }
+
+        .new-video-btn:hover {
+            background: #008ad3;
+        }
+
+        .recent-projects {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+
+        .project-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background .2s;
+            border-radius: 8px;
+            margin: 4px 8px;
+        }
+
+        .project-item:hover {
+            background: #2b2b3a;
+        }
+
+        .project-item .thumbnail {
+            width: 38px;
+            height: 38px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #3a3a4a;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .project-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .project-item .title {
+            font-size: .85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #e4e6eb;
+            font-weight: 500;
+        }
+
+        .project-item .date {
+            font-size: .72rem;
+            color: #6c7293;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .preview-area {
+            background: #1b1b28;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border: 1px solid #2b2b3a;
+            overflow: hidden;
+        }
+
+        .preview-area video {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .placeholder-text {
+            color: #565674;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .input-form {
+            background: #1b1b28;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2b2b3a;
+        }
+
+        .prompt-input {
+            resize: none;
+            background: #27273a;
+            color: #e4e6eb;
+            border: 1px solid #3a3a4a;
+        }
+        .prompt-input:focus {
+            border-color: #009ef7;
+            box-shadow: 0 0 0 0.2rem rgba(0,158,247,0.25);
+            background: #27273a;
+            color: #fff;
+        }
+
+        .btn-generate {
+            background: #009ef7;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 8px;
+            transition: background .2s;
+        }
+
+        .btn-generate:hover {
+            background: #008ad3;
+        }
+
+        .btn-generate:disabled {
+            background: #6c7293;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner, .status-message {
+            display: none;
+        }
+
+        .status-message {
+            margin-top: 12px;
+        }
+
+        /* Form check for aspect toggle */
+        .form-check-label {
+            font-size: .85rem;
+            color: #a2a3b7;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                flex-direction: row;
+                padding: 12px;
+                border-right: none;
+                border-bottom: 1px solid #2b2b3a;
+                overflow-x: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar .brand {
+                margin-bottom: 0;
+                font-size: 1.2rem;
+                padding: 0 8px;
+                white-space: nowrap;
+            }
+
+            .sidebar .nav-section,
+            .sidebar .nav-btn,
+            .sidebar .new-video-btn,
+            .recent-projects {
+                display: none;
+            }
+
+            /* Keep essentials: brand and maybe a collapsed menu icon */
+            .sidebar .brand i {
+                margin-right: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fas fa-video me-2"></i> VidGen AI
+        </div>
+
+        <a href="#" class="new-video-btn" id="newVideoBtn">
+            <i class="fas fa-plus me-2"></i> New Video
+        </a>
+
+        <div class="nav-section">
+            <h5>Recent Projects</h5>
+        </div>
+        <div class="recent-projects" id="recentProjectsList">
+            <div class="project-item" style="opacity:0.5;">
+                <div class="thumbnail" style="background: #2b2b3a;"></div>
+                <div class="info">
+                    <div class="title">No projects yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Panel -->
+    <div class="main-content">
+        <!-- Video Preview -->
+        <div class="preview-area" id="previewArea">
+            <div class="text-center w-100">
+                <div id="videoContainer" style="display:none;">
+                    <video id="videoPlayer" controls style="width:100%; max-height: 70vh;" poster="https://via.placeholder.com/800x450.png?text=Your+Video+Will+Appear+Here">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div id="placeholder" class="placeholder-text">
+                    <i class="fas fa-film fa-3x mb-3 d-block"></i>
+                    Enter a prompt below to create your video.
+                </div>
+                <div id="loadingSpinner" class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Generating video...</span>
+                    </div>
+                    <p class="mt-2">Generating your video... This may take a minute.</p>
+                </div>
+                <div id="statusMessage" class="status-message">
+                    <span id="statusText"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="input-form">
+            <form id="videoForm">
+                <div class="mb-3">
+                    <label for="promptInput" class="form-label">What video do you want to create?</label>
+                    <textarea class="form-control prompt-input" id="promptInput" rows="2" placeholder="e.g., Create a 30-second motivational video about perseverance..." required></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button type="submit" class="btn btn-generate" id="generateBtn">
+                        <i class="fas fa-magic me-2"></i> Generate Video
+                    </button>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="keepAspect" checked>
+                        <label class="form-check-label" for="keepAspect">9:16 vertical (TikTok / Reels)</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = ''; // Adjust to your backend base URL, e.g., '/api' or ''
+        let currentJobId = null;
+        let pollingInterval = null;
+
+        // DOM references
+        const videoForm = document.getElementById('videoForm');
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const placeholder = document.getElementById('placeholder');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusMessage = document.getElementById('statusMessage');
+        const statusText = document.getElementById('statusText');
+        const videoContainer = document.getElementById('videoContainer');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const recentProjectsList = document.getElementById('recentProjectsList');
+        const newVideoBtn = document.getElementById('newVideoBtn');
+
+        // ---------- Recent Projects Logic ----------
+        function loadRecentProjects() {
+            // In a real app, fetch from /api/projects. For now, render empty state.
+            const projects = [];
+            renderProjects(projects);
+        }
+
+        function renderProjects(projects) {
+            if (!projects.length) {
+                recentProjectsList.innerHTML = `
+                    <div class="project-item" style="opacity:0.5;">
+                        <div class="thumbnail" style="background: #2b2b3a;"></div>
+                        <div class="info">
+                            <div class="title">No projects yet</div>
+                        </div>
+                    </div>`;
+                return;
+            }
+            let html = '';
+            projects.forEach(p => {
+                html += `
+                <div class="project-item" data-id="${p.id}">
+                    <img class="thumbnail" src="${p.thumbnail || 'https://via.placeholder.com/40'}" alt="thumbnail">
+                    <div class="info">
+                        <div class="title">${p.title}</div>
+                        <div class="date">${p.created}</div>
+                    </div>
+                </div>`;
+            });
+            recentProjectsList.innerHTML = html;
+            document.querySelectorAll('.project-item[data-id]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    const id = this.getAttribute('data-id');
+                    if (id) loadVideoFromProject(id);
+                });
+            });
+        }
+
+        async function loadVideoFromProject(projectId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/project/${projectId}`);
+                const data = await res.json();
+                if (data.video_url) {
+                    showVideo(data.video_url);
+                }
+            } catch (err) {
+                console.error('Failed to load project', err);
+            }
+        }
+
+        function addProjectToRecent(jobId, title) {
+            const noProjects = document.querySelectorAll('.project-item').length === 1 &&
+                document.querySelector('.project-item .title')?.textContent === 'No projects yet';
+            if (noProjects) {
+                recentProjectsList.innerHTML = '';
+            }
+            const item = document.createElement('div');
+            item.className = 'project-item';
+            item.setAttribute('data-id', jobId);
+            item.innerHTML = `
+                <img class="thumbnail" src="https://via.placeholder.com/40/009ef7/white?text=V" alt="thumbnail">
+                <div class="info">
+                    <div class="title">${title}</div>
+                    <div class="date">Just now</div>
+                </div>`;
+            recentProjectsList.prepend(item);
+            item.addEventListener('click', function(e) {
+                loadVideoFromProject(jobId);
+            });
+        }
+
+        // ---------- Video Preview & Status ----------
+        function showVideo(url) {
+            placeholder.style.display = 'none';
+            loadingSpinner.style.display = 'none';
+            statusMessage.style.display = 'none';
+            videoContainer.style.display = 'block';
+            videoPlayer.src = url;
+            videoPlayer.load();
+        }
+
+        function resetPreview() {
+            placeholder.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+            statusMessage.style.display = 'none';
+            videoContainer.style.display = 'none';
+            videoPlayer.src = '';
+            if (pollingInterval) clearInterval(pollingInterval);
+        }
+
+        function pollJob(jobId) {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/status/${jobId}`);
+                    const data = await res.json();
+                    if (data.status === 'completed') {
+                        clearInterval(pollingInterval);
+                        showVideo(data.video_url);
+                        addProjectToRecent(jobId, data.title || 'Untitled');
+                        generateBtn.disabled = false;
+                    } else if (data
